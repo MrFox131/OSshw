@@ -1,18 +1,30 @@
-ifeq ($(OS),Windows_NT) 
-    binary := ./build/main.exe
+srcs := main.c my_func.c
+blddir := build
+objs := $(addprefix $(blddir)/,$(srcs:.c=.o))
+ifeq ($(OS),Windows_NT)
+    exe := ./$(blddir)/main.exe
 else
-    binary := ./build/main
+    exe := ./$(blddir)/main
 endif
 
-build/my_func.o: my_func.c
-	g++ -c -Wall -g ./my_func.c -o build/my_func.o
+CC = g++
+CFLAGS =
 
-build/main.o: main.c
-	g++ -c -Wall -g ./main.c -o build/main.o
+.PHONY: all clean
 
+all: $(exe)
 
-all: build/main.o build/my_func.o
-	g++ -o $(binary) build/main.o build/my_func.o
+$(blddir):
+	mkdir -p $(@)
+
+$(blddir)/%.o: %.c | $(blddir)
+	$(CC) $(CFLAGS) -o $@ -c -Wall -g $<
+
+$(exe) : $(objs)
+	$(CC) -o $@ $^ $(LDFLAGS) $(LDLIBS)
+
+clean:
+	rm -rf build/*
 
 run: all
-	$(binary)
+	$(exe)
