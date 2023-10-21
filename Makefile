@@ -3,8 +3,10 @@ blddir := build
 objs := $(addprefix $(blddir)/,$(srcs:.c=.o))
 ifeq ($(OS),Windows_NT)
     exe := ./$(blddir)/main.exe
+	rm = del /q
 else
     exe := ./$(blddir)/main
+	rm = rm
 endif
 
 CC = g++
@@ -24,7 +26,7 @@ $(exe) : $(objs)
 	$(CC) -o $@ $^ $(LDFLAGS) $(LDLIBS)
 
 clean:
-	rm -rf build/*
+	$(rm) build/*
 
 run: all
 	$(exe)
