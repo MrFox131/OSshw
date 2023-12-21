@@ -13,6 +13,7 @@ using namespace std;
 
 DWORD WINAPI ThreadFunc(LPVOID lpParam) {
     cout << "Hi";
+    return 0;
 }
 
 int main() {
