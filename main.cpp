@@ -72,8 +72,8 @@ char *current_executable_path;
 DWORD WINAPI CopyRunner(SharedMemory<int>* shmem) {
 #if defined(WIN32)
     PROCESS_INFORMATION a, b;
-    char *ca = 'copyA';
-    char *cb = 'copyB';
+    char *ca = "copyA";
+    char *cb = "copyB";
     while (true) {
         Sleep(3000);
         DWORD exit_code = 0;
