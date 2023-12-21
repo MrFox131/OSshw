@@ -1,12 +1,12 @@
 #if defined(WIN32)
 #include "windows.h"
+#define THREAD_HANDLE HANDLE
 #else
 #include <pthread.h>
 #define DWORD void*
 #define WINAPI
 #define LPVOID void*
 #define THREAD_HANDLE pthread_t
-
 #endif
 #include <iostream>
 #include "SharedMemory.hpp"
