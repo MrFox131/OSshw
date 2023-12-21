@@ -145,6 +145,7 @@ DWORD WINAPI Logger(SharedMemory<int>* shmem) {
 }
 
 int main(int argc, char *argv[]) {
+    cout << argv[1];
     if (argc > 1) {
         if (strcmp(argv[1], "copyA") == 0) {
             cout << "COPY AAAA" << endl;
