@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 3.27)
+cmake_minimum_required(VERSION 3.25)
 
 project("Default test project by MrFox131")
 
-add_executable(main main.c)
+add_executable(main main.cpp SharedMemory.hpp)
 
-add_library(my_func my_func.c)
+target_link_libraries(main)
 
-target_link_libraries(main my_func)
+#include_directories(SYSTEM /usr/x86_64-w64-mingw32/include)
