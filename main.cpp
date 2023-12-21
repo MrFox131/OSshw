@@ -4,7 +4,7 @@
 #if defined(WIN32)
 #include "windows.h"
 #else
-#define DWORD int
+#define LPDWORD int
 #endif
 
 using namespace std;
@@ -15,7 +15,7 @@ int ThreadFunc() {
 
 int main() {
     auto shmem = SharedMemory<int>("test_name");
-    int thread_id = 0;
+    LPDWORD thread_id = 0;
     #if defined(WIN32)
         CreateThread(NULL, 0, ThreadFunc, NULL, 0, &thread_id);
     #endif

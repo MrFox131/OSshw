@@ -69,7 +69,7 @@ bool SharedMemory<T>::UnmapMemory() {
         return false;
     }
 #if defined (WIN32)
-    UnmapViewfFile(content);
+    UnmapViewOfFile(content);
 #else
     munmap(content, sizeof(ContentData));
 #endif
