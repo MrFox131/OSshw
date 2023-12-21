@@ -1,5 +1,3 @@
-#include <iostream>
-#include "SharedMemory.hpp"
 #if defined(WIN32)
 #include "windows.h"
 #else
@@ -7,6 +5,9 @@
 #define WINAPI
 #define LPVOID void*
 #endif
+#include <iostream>
+#include "SharedMemory.hpp"
+
 
 using namespace std;
 
