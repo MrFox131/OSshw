@@ -21,7 +21,7 @@ int main() {
         CreateThread(
                 nullptr,
                 0,
-                ThreadFunc,
+                reinterpret_cast<int>(ThreadFunc),
                 nullptr,
                 0,
                 &thread_id
