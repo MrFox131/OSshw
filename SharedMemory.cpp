@@ -1,5 +1,27 @@
 #include "SharedMemory.hpp"
-#define WIN32
+#include <cstdlib>
+#if defined (WIN32)
+
+#include <winbase.h>
+#define SEM_HANDLE HANDLE
+#define MAP_NAME_PREFIX "Local\\"
+
+#else
+
+#include <fcntl.h>           /* For O_* constants */
+#include <sys/mman.h>
+#include <sys/stat.h>        /* For mode constants */
+#include <semaphore.h>
+#include <unistd.h>
+#include <semaphore.h>
+#include <cstdlib>
+
+#define HANDLE int
+#define SEM_HANDLE sem_t*
+#define INVALID_HANDLE_VALUE -1
+#define MAP_NAME_PREFIX "/"
+
+#endif
 
 template <class T>
 bool SharedMemory<T>::CreateSharedMemoryAndSemafor(const char* memory_name, const char* semafor_name) {
@@ -178,7 +200,7 @@ SharedMemory<T>::SharedMemory(const char* name, bool create_if_does_not_exist):_
 template <class T>
 SharedMemory<T>::~SharedMemory() {
     if (IsValid()) {
-        int cnt = 0;
+        int cnt;
         Lock();
         content -> number_acquired--;
         cnt = content -> number_acquired;
@@ -189,8 +211,8 @@ SharedMemory<T>::~SharedMemory() {
             CloseMem();
         }
     }
-    free(semafor_full_name);
-    free(fd_full_name);
+    delete (semafor_full_name);
+    delete (fd_full_name);
 }
 
 template <class T>

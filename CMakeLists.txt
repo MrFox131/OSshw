@@ -6,4 +6,4 @@ add_executable(main main.cpp SharedMemory.hpp)
 
 target_link_libraries(main)
 
-include_directories(SYSTEM /usr/x86_64-w64-mingw32/include)
+#include_directories(SYSTEM /usr/x86_64-w64-mingw32/include)
