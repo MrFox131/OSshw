@@ -11,7 +11,7 @@
 using namespace std;
 
 DWORD WINAPI ThreadFunc(LPVOID lpParam) {
-    cout << "test";
+    return 0;
 }
 
 int main() {
