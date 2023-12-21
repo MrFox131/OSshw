@@ -80,10 +80,10 @@ DWORD WINAPI CopyRunner(SharedMemory<int>* shmem) {
     memcpy(cb + strlen(current_executable_path), " copyB", 7);
     while (true) {
         Sleep(3000);
-        DWORD exit_code = 0;
-        auto a_status = GetExitCodeProcess(a.hProcess, &exit_code);
-        auto b_status = GetExitCodeProcess(b.hProcess, &exit_code);
-        if (a_status != STILL_ACTIVE && b_status != STILL_ACTIVE) {
+        DWORD exit_code_a = 0, exit_code_b = 0;
+        auto a_status = GetExitCodeProcess(a.hProcess, &exit_code_a);
+        auto b_status = GetExitCodeProcess(b.hProcess, &exit_code_b);
+        if (exit_code_a != STILL_ACTIVE && exit_code_b != STILL_ACTIVE) {
             cout << "STATUSES: " << a_status << " " << b_status << endl;
             CloseHandle(a.hProcess);
             CloseHandle(a.hThread);
