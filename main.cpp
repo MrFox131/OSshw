@@ -21,7 +21,7 @@ int main() {
         CreateThread(
                 nullptr,
                 0,
-                &ThreadFunc,
+                (LPTHREAD_START_ROUTINE)ThreadFunc,
                 nullptr,
                 0,
                 &thread_id
