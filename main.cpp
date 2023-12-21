@@ -32,7 +32,7 @@ int main() {
         h = CreateThread(
                 nullptr,
                 0,
-                ThreadFunc,
+                reinterpret_cast<LPTHREAD_START_ROUTINE>(ThreadFunc),
                 shmem,
                 0,
                 &thread_id
