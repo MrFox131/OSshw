@@ -1,12 +1,6 @@
 #include <iostream>
 #include "SharedMemory.hpp"
-#if defined(WIN32)
 #include "windows.h"
-#else
-#define DWORD unsigned long int
-#define WINAPI
-#define LPVOID void*
-#endif
 
 using namespace std;
 
