@@ -16,7 +16,11 @@ using namespace std;
 
 DWORD WINAPI ThreadFunc(LPVOID lpParam) {
     cout << "Hi";
+#if defined(WIN32)
+    return 0;
+#else
     return nullptr;
+#endif
 }
 
 int main() {
