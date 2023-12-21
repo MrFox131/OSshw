@@ -15,7 +15,7 @@ int ThreadFunc() {
 
 int main() {
     auto shmem = SharedMemory<int>("test_name");
-    DWORD thread_id = 0;
+    int thread_id = 0;
     #if defined(WIN32)
         CreateThread(NULL, 0, ThreadFunc, NULL, 0, &thread_id);
     #endif
