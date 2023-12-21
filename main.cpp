@@ -23,7 +23,7 @@ int main() {
                 ThreadFunc,
                 nullptr,
                 0,
-                &thread_id
+                reinterpret_cast<LPTHREAD_START_ROUTINE>(&thread_id)
                 );
     #endif
     
