@@ -1,4 +1,5 @@
 #include "SharedMemory.hpp"
+#define WIN32
 
 template <class T>
 bool SharedMemory<T>::CreateSharedMemoryAndSemafor(const char* memory_name, const char* semafor_name) {
