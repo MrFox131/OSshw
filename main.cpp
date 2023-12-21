@@ -129,7 +129,7 @@ DWORD WINAPI Logger(SharedMemory<int>* shmem) {
         GetLocalTime(&st);
 
         char output[255];
-        sprintf(output, "%02d:%02d:%02d.%03d %d %d\n", st.wHour, st.wMinute, st.wSecond, st.Milliseconds, GetCurrentProcessId(),shmem->content->data);
+        sprintf(output, "%02d:%02d:%02d.%03d %d %d\n", st.wHour, st.wMinute, st.wSecond, st.wMilliseconds, GetCurrentProcessId(),shmem->content->data);
         cout << output;
 #else
         auto t = time(nullptr);
