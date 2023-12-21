@@ -28,6 +28,7 @@ int main() {
                 0,
                 &thread_id
                 );
+        cout << "Hello";
         WaitForSingleObject(h, 2000);
     #endif
     
