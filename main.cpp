@@ -72,8 +72,8 @@ char *current_executable_path;
 DWORD WINAPI CopyRunner(SharedMemory<int>* shmem) {
 #if defined(WIN32)
     PROCESS_INFORMATION a, b;
-    char *ca = calloc(strlen(current_executable_path)+7);
-    char *cb = calloc(strlen(current_executable_path)+7);
+    char *ca = calloc(strlen(current_executable_path)+7, sizeof(char));
+    char *cb = calloc(strlen(current_executable_path)+7, sizeof(char));
     memcpy(ca, current_executable_path, strlen(current_executable_path));
     memcpy(cb, current_executable_path, strlen(current_executable_path));
     memcpy(ca + strlen(current_executable_path), " copyA", 7);
