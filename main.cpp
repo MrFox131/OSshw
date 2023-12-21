@@ -26,6 +26,12 @@ DWORD WINAPI ThreadFunc(SharedMemory<int>* shmem) {
 #endif
 }
 
+#if defined(WIN32)
+void sleep(int secs) {
+    Sleep(secs);
+}
+#endif
+
 int main() {
     auto shmem = new SharedMemory<int>("test_name");
     shmem->Lock();
