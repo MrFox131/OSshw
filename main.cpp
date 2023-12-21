@@ -12,14 +12,14 @@
 using namespace std;
 
 DWORD WINAPI ThreadFunc(LPVOID lpParam) {
-    return 0;
+    cout << "Hi";
 }
 
 int main() {
     auto shmem = SharedMemory<int>("test_name");
     DWORD thread_id = 0;
     #if defined(WIN32)
-        CreateThread(
+        HANDLE h = CreateThread(
                 nullptr,
                 0,
                 ThreadFunc,
@@ -27,6 +27,7 @@ int main() {
                 0,
                 &thread_id
                 );
+        WaitForSingleObject(h, 2000);
     #endif
     
     return 0;
