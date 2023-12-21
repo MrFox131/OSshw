@@ -84,6 +84,7 @@ DWORD WINAPI CopyRunner(SharedMemory<int>* shmem) {
         auto a_status = GetExitCodeProcess(a.hProcess, &exit_code);
         auto b_status = GetExitCodeProcess(b.hProcess, &exit_code);
         if (a_status != STILL_ACTIVE && b_status != STILL_ACTIVE) {
+            cout << "STATUSES: " << a_status << " " << b_status << endl;
             CloseHandle(a.hProcess);
             CloseHandle(a.hThread);
             STARTUPINFO si;
