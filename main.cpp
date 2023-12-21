@@ -2,7 +2,7 @@
 #include "SharedMemory.hpp"
 
 #if defined(WIN32)
-#include "windiws.h"
+#include "windows.h"
 #else
 #define DWORD int
 #endif
