@@ -77,8 +77,8 @@ DWORD WINAPI CopyRunner(SharedMemory<int>* shmem) {
     while (true) {
         Sleep(3000);
         DWORD exit_code = 0;
-        a_status = GetExitCodeProcess(a.hProcess, &exit_code);
-        b_status = GetExitCodeProcess(b.hProcess, &exit_code);
+        auto a_status = GetExitCodeProcess(a.hProcess, &exit_code);
+        auto b_status = GetExitCodeProcess(b.hProcess, &exit_code);
         if (a_status != STILL_ACTIVE && b_status != STILL_ACTIVE) {
             CloseHandle(a.hProcess);
             CloseHandle(a.hThread);
