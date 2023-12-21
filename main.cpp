@@ -26,9 +26,9 @@ DWORD WINAPI ThreadFunc(SharedMemory<int>* shmem) {
 #endif
 }
 
-#if defined(WIN32)
-void sleep(int secs) {
-    Sleep(secs);
+#if !defined(WIN32)
+void Sleep(int milliseconds) {
+    usleep(milliseconds*1000);
 }
 #endif
 
@@ -55,7 +55,7 @@ int main() {
 
     cout << "Hello" << endl;
     shmem->Unlock();
-    sleep(1);
+    Sleep(1000);
     shmem->Lock();
     cout << shmem->content->data << endl;
     shmem->Unlock();
