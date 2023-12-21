@@ -76,8 +76,8 @@ DWORD WINAPI CopyRunner(SharedMemory<int>* shmem) {
     char *cb = calloc(strlen(current_executable_path)+7);
     memcpy(ca, current_executable_path, strlen(current_executable_path));
     memcpy(cb, current_executable_path, strlen(current_executable_path));
-    memcpy(ca+current_executable_path, " copyA", 7);
-    memcpy(cb+current_executable_path, " copyB", 7);
+    memcpy(ca + strlen(current_executable_path), " copyA", 7);
+    memcpy(cb + strlen(current_executable_path), " copyB", 7);
     while (true) {
         Sleep(3000);
         DWORD exit_code = 0;
