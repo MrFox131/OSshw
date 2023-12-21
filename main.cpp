@@ -59,7 +59,7 @@ int copyB() {
     shmem->Lock();
     shmem->content->data *= 2;
     shmem->Unlock();
-    Sleep(2000);
+    Sleep(20000);
     shmem->Lock();
     shmem->content->data = shmem->content->data / 2;
     shmem->Unlock();
