@@ -9,7 +9,7 @@
 
 using namespace std;
 
-DWORD ThreadFunc(LPVOID lpParam) {
+DWORD WINAPI ThreadFunc(LPVOID lpParam) {
     cout << "test";
 }
 
@@ -17,7 +17,7 @@ int main() {
     auto shmem = SharedMemory<int>("test_name");
     DWORD thread_id = 0;
     #if defined(WIN32)
-        CreateThread(nullptr, 0, &ThreadFunc, nullptr, 0, &thread_id);
+        CreateThread(nullptr, 0, ThreadFunc, nullptr, 0, &thread_id);
     #endif
     
     return 0;
