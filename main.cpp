@@ -4,12 +4,13 @@
 #include "windows.h"
 #else
 #define DWORD unsigned long int
+#define WINAPI
 #define LPVOID void*
 #endif
 
 using namespace std;
 
-DWORD ThreadFunc(LPVOID lpParam) {
+DWORD WINAPI ThreadFunc(LPVOID lpParam) {
     cout << "test";
 }
 
@@ -23,7 +24,7 @@ int main() {
                 ThreadFunc,
                 nullptr,
                 0,
-                reinterpret_cast<LPTHREAD_START_ROUTINE>(&thread_id)
+                &thread_id
                 );
     #endif
     
