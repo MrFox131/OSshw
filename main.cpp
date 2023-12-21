@@ -14,8 +14,8 @@
 
 using namespace std;
 
-DWORD WINAPI ThreadFunc(LPVOID lpParam) {
-    cout << "Hi";
+DWORD WINAPI ThreadFunc(SharedMemory<int>* lpParam) {
+    cout << lpParam->content->data;
 #if defined(WIN32)
     return 0;
 #else
@@ -24,7 +24,8 @@ DWORD WINAPI ThreadFunc(LPVOID lpParam) {
 }
 
 int main() {
-    auto shmem = SharedMemory<int>("test_name");
+    auto shmem = new SharedMemory<int>("test_name");
+    shmem->content->data = 55;
     DWORD thread_id;
     THREAD_HANDLE h;
     #if defined(WIN32)
@@ -32,7 +33,7 @@ int main() {
                 nullptr,
                 0,
                 ThreadFunc,
-                nullptr,
+                shmem,
                 0,
                 &thread_id
                 );
@@ -41,7 +42,7 @@ int main() {
     #else
         pthread_attr_t attrs;
         pthread_attr_init(&attrs);
-        pthread_create(&h, &attrs, ThreadFunc, nullptr);
+        pthread_create(&h, &attrs, reinterpret_cast<void *(*)(void *)>(ThreadFunc), shmem);
         cout << "Hello";
         pthread_join(h, nullptr);
     #endif
