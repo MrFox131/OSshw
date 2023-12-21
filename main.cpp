@@ -72,8 +72,12 @@ char *current_executable_path;
 DWORD WINAPI CopyRunner(SharedMemory<int>* shmem) {
 #if defined(WIN32)
     PROCESS_INFORMATION a, b;
-    char *ca = "copyA";
-    char *cb = "copyB";
+    char *ca = calloc(strlen(current_executable_path)+7);
+    char *cb = calloc(strlen(current_executable_path)+7);
+    memcpy(ca, current_executable_path, strlen(current_executable_path));
+    memcpy(cb, current_executable_path, strlen(current_executable_path));
+    memcpy(ca+current_executable_path, " copyA", 7);
+    memcpy(cb+current_executable_path, " copyB", 7);
     while (true) {
         Sleep(3000);
         DWORD exit_code = 0;
@@ -85,13 +89,13 @@ DWORD WINAPI CopyRunner(SharedMemory<int>* shmem) {
             STARTUPINFO si;
             ZeroMemory( &si, sizeof(si) );
             si.cb = sizeof(si);
-            CreateProcess(current_executable_path, ca, nullptr, nullptr, false, 0, nullptr, nullptr, &si, &a);
+            CreateProcess(nullptr, ca, nullptr, nullptr, false, 0, nullptr, nullptr, &si, &a);
 
             CloseHandle(b.hProcess);
             CloseHandle(b.hThread);
             ZeroMemory( &si, sizeof(si) );
             si.cb = sizeof(si);
-            CreateProcess(current_executable_path, cb, nullptr, nullptr, false, 0, nullptr, nullptr, &si, &b);
+            CreateProcess(nullptr, cb, nullptr, nullptr, false, 0, nullptr, nullptr, &si, &b);
         } else {
             cout << "Still Running" << endl;
         }
@@ -145,8 +149,8 @@ DWORD WINAPI Logger(SharedMemory<int>* shmem) {
 }
 
 int main(int argc, char *argv[]) {
-    cout << argv[1];
     if (argc > 1) {
+        cout << argv[1];
         if (strcmp(argv[1], "copyA") == 0) {
             cout << "COPY AAAA" << endl;
             copyA();
