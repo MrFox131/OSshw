@@ -12,6 +12,7 @@
 #define WINAPI
 #define LPVOID void*
 #define THREAD_HANDLE pthread_t
+#define HANDLE int
 
 #endif
 
@@ -21,6 +22,18 @@
 
 
 using namespace std;
+
+HANDLE fd;
+
+void WriteLog(const char* data) {
+#if defined(WIN32)
+    DWORD written;
+
+    WriteFile(fd, data, strlen(data), &written, NULL);
+#else
+    write(fd, data, strlen(data));
+#endif
+}
 
 
 #if !defined(WIN32)
@@ -45,25 +58,63 @@ DWORD WINAPI Incrementor(SharedMemory<int>* shmem) {
 
 int copyA() {
     auto shmem = new SharedMemory<int>("test_name");
-    cout << getpid() << endl;
+    char output[255];
+#if defined(WIN32)
+    SYSTEMTIME st;
+    GetLocalTime(&st);
+    sprintf(output, "%02d:%02d:%02d.%03d %d\n", st.wHour, st.wMinute, st.wSecond, st.wMilliseconds, GetCurrentProcessId());
+#else
+    auto t = time(nullptr);
+    auto lt = localtime(&t);
+    sprintf(output, "%02d:%02d:%02d %d\n", lt->tm_hour, lt->tm_min, lt->tm_sec, getpid());
+#endif
+    WriteLog(output);
     shmem->Lock();
     shmem->content->data += 10;
+#if defined(WIN32)
+    GetLocalTime(&st);
+    sprintf(output, "%02d:%02d:%02d.%03d %d %d\n", st.wHour, st.wMinute, st.wSecond, st.wMilliseconds, GetCurrentProcessId());
+#else
+    t = time(nullptr);
+    lt = localtime(&t);
+    sprintf(output, "%02d:%02d:%02d %d\n", lt->tm_hour, lt->tm_min, lt->tm_sec, getpid());
+#endif
     shmem->Unlock();
-    cout << getpid() << endl;
+    WriteLog(output);
     return 0;
 }
 
 int copyB() {
     auto shmem = new SharedMemory<int>("test_name");
-    cout << getpid() << endl;
+    char output[255];
+#if defined(WIN32)
+    SYSTEMTIME st;
+    GetLocalTime(&st);
+    sprintf(output, "%02d:%02d:%02d.%03d %d\n", st.wHour, st.wMinute, st.wSecond, st.wMilliseconds, GetCurrentProcessId());
+#else
+    auto t = time(nullptr);
+    auto lt = localtime(&t);
+    sprintf(output, "%02d:%02d:%02d %d\n", lt->tm_hour, lt->tm_min, lt->tm_sec, getpid());
+#endif
+    WriteLog(output);
     shmem->Lock();
     shmem->content->data *= 2;
     shmem->Unlock();
-    Sleep(20000);
+    Sleep(2000);
     shmem->Lock();
     shmem->content->data = shmem->content->data / 2;
     shmem->Unlock();
-    cout << getpid() << endl;
+
+
+#if defined(WIN32)
+    GetLocalTime(&st);
+    sprintf(output, "%02d:%02d:%02d.%03d %d %d\n", st.wHour, st.wMinute, st.wSecond, st.wMilliseconds, GetCurrentProcessId());
+#else
+    t = time(nullptr);
+    lt = localtime(&t);
+    sprintf(output, "%02d:%02d:%02d %d\n", lt->tm_hour, lt->tm_min, lt->tm_sec, getpid());
+#endif
+    WriteLog(output);
     return 0;
 }
 
@@ -84,7 +135,6 @@ DWORD WINAPI CopyRunner(SharedMemory<int>* shmem) {
         auto a_status = GetExitCodeProcess(a.hProcess, &exit_code_a);
         auto b_status = GetExitCodeProcess(b.hProcess, &exit_code_b);
         if (exit_code_a != STILL_ACTIVE && exit_code_b != STILL_ACTIVE) {
-            cout << "STATUSES: " << a_status << " " << b_status << endl;
             CloseHandle(a.hProcess);
             CloseHandle(a.hThread);
             STARTUPINFO si;
@@ -98,7 +148,7 @@ DWORD WINAPI CopyRunner(SharedMemory<int>* shmem) {
             si.cb = sizeof(si);
             CreateProcess(nullptr, cb, nullptr, nullptr, false, 0, nullptr, nullptr, &si, &b);
         } else {
-            cout << "Still Running" << endl;
+            WriteLog("Copies still working. Wait...\n");
         }
     }
 #else
@@ -119,7 +169,7 @@ DWORD WINAPI CopyRunner(SharedMemory<int>* shmem) {
                 return nullptr;
             }
         } else {
-            cout << "Copies still working. Wait..." << endl;
+            WriteLog("Copies still working. Wait...\n");
         }
     }
 
@@ -127,7 +177,7 @@ DWORD WINAPI CopyRunner(SharedMemory<int>* shmem) {
 #endif
 }
 
-DWORD WINAPI Logger(SharedMemory<int>* shmem) {
+DWORD WINAPI Logger(SharedMemory<int>* shmem, HANDLE fd) {
     while(true) {
         Sleep(1000);
         shmem -> Lock();
@@ -137,20 +187,41 @@ DWORD WINAPI Logger(SharedMemory<int>* shmem) {
 
         char output[255];
         sprintf(output, "%02d:%02d:%02d.%03d %d %d\n", st.wHour, st.wMinute, st.wSecond, st.wMilliseconds, GetCurrentProcessId(),shmem->content->data);
-        cout << output;
 #else
         auto t = time(nullptr);
         auto lt = localtime(&t);
         char output[255];
         sprintf(output, "%02d:%02d:%02d %d %d\n", lt->tm_hour, lt->tm_min, lt->tm_sec, getpid(),shmem->content->data);
-        cout << output;
 #endif
+        WriteLog(output);
         shmem->Unlock();
     }
 }
 
+HANDLE OpenFile(const char* filename, bool new_file) {
+#if defined(WIN32)
+
+    HANDLE h;
+    if (new_file) {
+        h = CreateFile(filename, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, TRUNCATE_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+        if (h == INVALID_HANDLE_VALUE)
+            h = CreateFile(filename, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+    } else {
+        h = CreateFile(filename, GENERIC_WRITE | FILE_APPEND_DATA, FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    }
+
+
+#else
+    if (new_file)
+        return open(filename, O_WRONLY | O_CREAT | O_TRUNC);
+    else
+        return open(filename, O_APPEND);
+#endif
+}
+
 int main(int argc, char *argv[]) {
     if (argc > 1) {
+        fd = OpenFile("logs.log", false);
         if (strcmp(argv[1], "copyA") == 0) {
             copyA();
             return 0;
@@ -160,6 +231,8 @@ int main(int argc, char *argv[]) {
         }
 
         return 0;
+    } else {
+        fd = OpenFile("logs.log", true);
     }
     current_executable_path = argv[0];
     auto shmem = new SharedMemory<int>("test_name");
@@ -207,7 +280,7 @@ int main(int argc, char *argv[]) {
                 reinterpret_cast<void *(*)(void *)>(CopyRunner),
                 shmem
                 );
-        cout << "Run runner" << endl;
+    WriteLog("Run runner\n");
     #endif
 
     THREAD_HANDLE logger_h;
