@@ -33,7 +33,7 @@ void WriteLog(const char* data) {
 
     LockFileEx(fd, LOCKFILE_EXCLUSIVE_LOCK, 0, 0, MAXDWORD, &ol);
 
-    GetOverlappedResult(fd, &ol, &written, true);
+    cout << GetOverlappedResult(fd, &ol, &written, true);
 
     WriteFile(fd, data, strlen(data), &written, NULL);
     UnlockFileEx(fd, 0, 0, MAXDWORD, &ol);
