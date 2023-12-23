@@ -30,6 +30,7 @@ void WriteLog(const char* data) {
     DWORD written;
 
     OVERLAPPED ol = {0};
+    ol->Offset
 
     LockFileEx(fd, LOCKFILE_EXCLUSIVE_LOCK, 0, MAXDWORD, MAXDWORD, &ol);
 
@@ -215,6 +216,12 @@ HANDLE OpenFile(const char* filename, bool new_file) {
     } else {
         h = CreateFile(filename, GENERIC_WRITE | FILE_APPEND_DATA, FILE_SHARE_WRITE | FILE_FLAG_OVERLAPPED, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     }
+
+    if (h == INVALID_HANDLER_VALUE) {
+        cout << "Failed to open file" << endl;
+    } els {
+        cout << "Opened file" << endl;
+    };
     return h;
 
 #else
