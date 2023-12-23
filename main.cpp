@@ -242,8 +242,9 @@ int main(int argc, char *argv[]) {
     }
     current_executable_path = argv[0];
     auto shmem = new SharedMemory<int>("test_name");
-
+    shmem->Lock();
     shmem->content->data=1;
+    shmem->Unlock();
 
     THREAD_HANDLE incrementer_h;
     #if defined(WIN32)
