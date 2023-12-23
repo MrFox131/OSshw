@@ -30,7 +30,6 @@ void WriteLog(const char* data) {
     DWORD written;
 
     OVERLAPPED ol = {0};
-    ol->Offset
 
     LockFileEx(fd, LOCKFILE_EXCLUSIVE_LOCK, 0, MAXDWORD, MAXDWORD, &ol);
 
