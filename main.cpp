@@ -216,7 +216,7 @@ HANDLE OpenFile(const char* filename, bool new_file) {
         h = CreateFile(filename, GENERIC_WRITE | FILE_APPEND_DATA, FILE_SHARE_WRITE | FILE_FLAG_OVERLAPPED, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     }
 
-    if (h == INVALID_HANDLER_VALUE) {
+    if (h == INVALID_HANDLE_VALUE) {
         cout << "Failed to open file" << endl;
     } else {
         cout << "Opened file" << endl;
