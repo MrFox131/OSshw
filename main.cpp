@@ -68,8 +68,8 @@ int copyA() {
     auto lt = localtime(&t);
     sprintf(output, "%02d:%02d:%02d %d\n", lt->tm_hour, lt->tm_min, lt->tm_sec, getpid());
 #endif
-    WriteLog(output);
     shmem->Lock();
+    WriteLog(output);
     shmem->content->data += 10;
 #if defined(WIN32)
     GetLocalTime(&st);
@@ -79,8 +79,8 @@ int copyA() {
     lt = localtime(&t);
     sprintf(output, "%02d:%02d:%02d %d\n", lt->tm_hour, lt->tm_min, lt->tm_sec, getpid());
 #endif
-    shmem->Unlock();
     WriteLog(output);
+    shmem->Unlock();
     return 0;
 }
 
@@ -96,15 +96,13 @@ int copyB() {
     auto lt = localtime(&t);
     sprintf(output, "%02d:%02d:%02d %d\n", lt->tm_hour, lt->tm_min, lt->tm_sec, getpid());
 #endif
-    WriteLog(output);
     shmem->Lock();
+    WriteLog(output);
     shmem->content->data *= 2;
     shmem->Unlock();
     Sleep(2000);
     shmem->Lock();
     shmem->content->data = shmem->content->data / 2;
-    shmem->Unlock();
-
 
 #if defined(WIN32)
     GetLocalTime(&st);
@@ -115,6 +113,7 @@ int copyB() {
     sprintf(output, "%02d:%02d:%02d %d\n", lt->tm_hour, lt->tm_min, lt->tm_sec, getpid());
 #endif
     WriteLog(output);
+    shmem->Unlock();
     return 0;
 }
 
@@ -208,13 +207,7 @@ HANDLE OpenFile(const char* filename, bool new_file) {
             h = CreateFile(filename, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
     } else {
         h = CreateFile(filename, GENERIC_WRITE | FILE_APPEND_DATA, FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-        if (h == INVALID_HANDLE_VALUE) {
-            cout << "ERROR OPENING FILE" << endl;
-        } else {
-            cout << "Opened file" << endl;
-        }
     }
-
     return h;
 
 #else
