@@ -210,6 +210,8 @@ HANDLE OpenFile(const char* filename, bool new_file) {
         h = CreateFile(filename, GENERIC_WRITE | FILE_APPEND_DATA, FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
         if (h == INVALID_HANDLE_VALUE) {
             cout << "ERROR OPENING FILE" << endl;
+        } else {
+            cout << "Opened file" << endl;
         }
     }
 
