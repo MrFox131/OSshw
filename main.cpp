@@ -29,7 +29,7 @@ void WriteLog(const char* data) {
 #if defined(WIN32)
     DWORD written;
 
-    OVERLAPPED ol = {0}
+    OVERLAPPED ol = {0};
 
     LockFileEx(fd, LOCKFILE_EXCLUSIVE_LOCK, 0, 0, MAXDWORD, &ol);
 
