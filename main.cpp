@@ -82,7 +82,7 @@ int copyA() {
     shmem->content->data += 10;
 #if defined(WIN32)
     GetLocalTime(&st);
-    sprintf(output, "%02d:%02d:%02d.%03d %d %d\n", st.wHour, st.wMinute, st.wSecond, st.wMilliseconds, GetCurrentProcessId());
+    sprintf(output, "%02d:%02d:%02d.%03d %d\n", st.wHour, st.wMinute, st.wSecond, st.wMilliseconds, GetCurrentProcessId());
 #else
     t = time(nullptr);
     lt = localtime(&t);
@@ -115,7 +115,7 @@ int copyB() {
 
 #if defined(WIN32)
     GetLocalTime(&st);
-    sprintf(output, "%02d:%02d:%02d.%03d %d %d\n", st.wHour, st.wMinute, st.wSecond, st.wMilliseconds, GetCurrentProcessId());
+    sprintf(output, "%02d:%02d:%02d.%03d %d\n", st.wHour, st.wMinute, st.wSecond, st.wMilliseconds, GetCurrentProcessId());
 #else
     t = time(nullptr);
     lt = localtime(&t);
