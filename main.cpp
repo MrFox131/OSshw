@@ -210,6 +210,7 @@ HANDLE OpenFile(const char* filename, bool new_file) {
         h = CreateFile(filename, GENERIC_WRITE | FILE_APPEND_DATA, FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     }
 
+    return h;
 
 #else
     if (new_file)
