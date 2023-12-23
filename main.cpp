@@ -33,12 +33,8 @@ void WriteLog(const char* data) {
     ol.Offset = 0xFFFFFFFF;
     ol.OffsetHigh = 0xFFFFFFFF;
 
-//    LockFileEx(fd, LOCKFILE_EXCLUSIVE_LOCK, 0, MAXDWORD, MAXDWORD, &ol);
-//
-//    cout << GetOverlappedResult(fd, &ol, &written, true);
-
     WriteFile(fd, data, strlen(data), &written, &ol);
-//    UnlockFileEx(fd, 0, MAXDWORD, MAXDWORD, &ol);
+    CloseHandle(ol.hEvent);
 #else
     write(fd, data, strlen(data));
 #endif
@@ -77,9 +73,11 @@ int copyA() {
     auto lt = localtime(&t);
     sprintf(output, "%02d:%02d:%02d %d\n", lt->tm_hour, lt->tm_min, lt->tm_sec, getpid());
 #endif
-    shmem->Lock();
     WriteLog(output);
+    shmem->Lock();
     shmem->content->data += 10;
+    shmem->Unlock();
+
 #if defined(WIN32)
     GetLocalTime(&st);
     sprintf(output, "%02d:%02d:%02d.%03d %d\n", st.wHour, st.wMinute, st.wSecond, st.wMilliseconds, GetCurrentProcessId());
@@ -89,7 +87,6 @@ int copyA() {
     sprintf(output, "%02d:%02d:%02d %d\n", lt->tm_hour, lt->tm_min, lt->tm_sec, getpid());
 #endif
     WriteLog(output);
-    shmem->Unlock();
     return 0;
 }
 
@@ -105,13 +102,14 @@ int copyB() {
     auto lt = localtime(&t);
     sprintf(output, "%02d:%02d:%02d %d\n", lt->tm_hour, lt->tm_min, lt->tm_sec, getpid());
 #endif
-    shmem->Lock();
     WriteLog(output);
+    shmem->Lock();
     shmem->content->data *= 2;
     shmem->Unlock();
     Sleep(2000);
     shmem->Lock();
     shmem->content->data = shmem->content->data / 2;
+    shmem->Unlock();
 
 #if defined(WIN32)
     GetLocalTime(&st);
@@ -122,7 +120,6 @@ int copyB() {
     sprintf(output, "%02d:%02d:%02d %d\n", lt->tm_hour, lt->tm_min, lt->tm_sec, getpid());
 #endif
     WriteLog(output);
-    shmem->Unlock();
     return 0;
 }
 
@@ -217,12 +214,6 @@ HANDLE OpenFile(const char* filename, bool new_file) {
     } else {
         h = CreateFile(filename, GENERIC_WRITE | FILE_APPEND_DATA, FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, NULL);
     }
-
-    if (h == INVALID_HANDLE_VALUE) {
-        cout << "Failed to open file" << endl;
-    } else {
-        cout << "Opened file" << endl;
-    };
     return h;
 
 #else
@@ -230,6 +221,14 @@ HANDLE OpenFile(const char* filename, bool new_file) {
         return open(filename, O_WRONLY | O_CREAT | O_TRUNC);
     else
         return open(filename, O_APPEND);
+#endif
+}
+
+void _CloseFile(HANDLE fd) {
+#if defined(WIN32)
+    CloseHandle(fd);
+#else
+    close(fd);
 #endif
 }
 
@@ -243,6 +242,8 @@ int main(int argc, char *argv[]) {
             copyB();
             return 0;
         }
+
+        _CloseFile(fd);
 
         return 0;
     } else {
