@@ -218,7 +218,7 @@ HANDLE OpenFile(const char* filename, bool new_file) {
 
     if (h == INVALID_HANDLER_VALUE) {
         cout << "Failed to open file" << endl;
-    } els {
+    } else {
         cout << "Opened file" << endl;
     };
     return h;
