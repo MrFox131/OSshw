@@ -30,13 +30,15 @@ void WriteLog(const char* data) {
     DWORD written;
 
     OVERLAPPED ol = {0};
+    ol.Offset = 0xFFFFFFFF;
+    ol.OffsetHigh = 0xFFFFFFFF;
 
-    LockFileEx(fd, LOCKFILE_EXCLUSIVE_LOCK, 0, MAXDWORD, MAXDWORD, &ol);
-
-    cout << GetOverlappedResult(fd, &ol, &written, true);
+//    LockFileEx(fd, LOCKFILE_EXCLUSIVE_LOCK, 0, MAXDWORD, MAXDWORD, &ol);
+//
+//    cout << GetOverlappedResult(fd, &ol, &written, true);
 
     WriteFile(fd, data, strlen(data), &written, &ol);
-    UnlockFileEx(fd, 0, MAXDWORD, MAXDWORD, &ol);
+//    UnlockFileEx(fd, 0, MAXDWORD, MAXDWORD, &ol);
 #else
     write(fd, data, strlen(data));
 #endif
