@@ -35,7 +35,7 @@ void WriteLog(const char* data) {
 
     cout << GetOverlappedResult(fd, &ol, &written, true);
 
-    WriteFile(fd, data, strlen(data), &written, NULL);
+    WriteFile(fd, data, strlen(data), &written, &ol);
     UnlockFileEx(fd, 0, MAXDWORD, MAXDWORD, &ol);
 #else
     write(fd, data, strlen(data));
