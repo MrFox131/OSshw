@@ -1,3 +1,4 @@
+#include "IncludesAndDefines.h"
 #if !defined(WIN32)
 
 #include <pthread.h>
@@ -9,7 +10,6 @@
 #include <iostream>
 #include "SharedMemory.hpp"
 #include "SerialPort.h"
-#include "IncludesAndDefines.h"
 #include "FileUtils.h"
 #include <ctime>
 
