@@ -10,11 +10,8 @@
 
 #include <fcntl.h>           /* For O_* constants */
 #include <sys/mman.h>
-#include <sys/stat.h>        /* For mode constants */
 #include <semaphore.h>
 #include <unistd.h>
-#include <semaphore.h>
-#include <cstdlib>
 
 #define HANDLE int
 #define SEM_HANDLE sem_t*

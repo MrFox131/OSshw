@@ -1,332 +1,93 @@
-#if defined(WIN32)
-
-#include "windows.h"
-#define THREAD_HANDLE HANDLE
-
-#else
+#if !defined(WIN32)
 
 #include <pthread.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#define DWORD void*
-#define WINAPI
-#define LPVOID void*
-#define THREAD_HANDLE pthread_t
-#define HANDLE int
 
 #endif
 
 #include <iostream>
 #include "SharedMemory.hpp"
+#include "SerialPort.h"
+#include "IncludesAndDefines.h"
+#include "FileUtils.h"
 #include <ctime>
-
 
 using namespace std;
 
-HANDLE fd;
+struct Measurements {
 
-void WriteLog(const char* data) {
-#if defined(WIN32)
-    DWORD written;
+};
 
-    OVERLAPPED ol = {0};
-    ol.Offset = 0xFFFFFFFF;
-    ol.OffsetHigh = 0xFFFFFFFF;
+DWORD WINAPI MeasurementsReader(SerialPort* sp) {
+    char *buffer = static_cast<char *>(calloc(sizeof(char), 1024));
+    memset(buffer, 0, sizeof(char)*1024);
+    int remainder = 0;
 
-    WriteFile(fd, data, strlen(data), &written, &ol);
-    CloseHandle(ol.hEvent);
-#else
-    write(fd, data, strlen(data));
-#endif
-}
+    int read_count;
+    int full_length;
 
-
-#if !defined(WIN32)
-void Sleep(int milliseconds) {
-    usleep(milliseconds*1000);
-}
-#endif
-
-DWORD WINAPI Incrementor(SharedMemory<int>* shmem) {
-    while(true) {
-        shmem->Lock();
-        shmem->content->data++;
-        shmem->Unlock();
-        Sleep(300);
-    }
-#if defined(WIN32)
-    return 0;
-#else
-    return nullptr;
-#endif
-}
-
-int copyA() {
-    auto shmem = new SharedMemory<int>("test_name");
-    char output[255];
-#if defined(WIN32)
-    SYSTEMTIME st;
-    GetLocalTime(&st);
-    sprintf(output, "%02d:%02d:%02d.%03d %d\n", st.wHour, st.wMinute, st.wSecond, st.wMilliseconds, GetCurrentProcessId());
-#else
-    auto t = time(nullptr);
-    auto lt = localtime(&t);
-    sprintf(output, "%02d:%02d:%02d %d\n", lt->tm_hour, lt->tm_min, lt->tm_sec, getpid());
-#endif
-    WriteLog(output);
-    shmem->Lock();
-    shmem->content->data += 10;
-    shmem->Unlock();
-
-#if defined(WIN32)
-    GetLocalTime(&st);
-    sprintf(output, "%02d:%02d:%02d.%03d %d\n", st.wHour, st.wMinute, st.wSecond, st.wMilliseconds, GetCurrentProcessId());
-#else
-    t = time(nullptr);
-    lt = localtime(&t);
-    sprintf(output, "%02d:%02d:%02d %d\n", lt->tm_hour, lt->tm_min, lt->tm_sec, getpid());
-#endif
-    WriteLog(output);
-    return 0;
-}
-
-int copyB() {
-    auto shmem = new SharedMemory<int>("test_name");
-    char output[255];
-#if defined(WIN32)
-    SYSTEMTIME st;
-    GetLocalTime(&st);
-    sprintf(output, "%02d:%02d:%02d.%03d %d\n", st.wHour, st.wMinute, st.wSecond, st.wMilliseconds, GetCurrentProcessId());
-#else
-    auto t = time(nullptr);
-    auto lt = localtime(&t);
-    sprintf(output, "%02d:%02d:%02d %d\n", lt->tm_hour, lt->tm_min, lt->tm_sec, getpid());
-#endif
-    WriteLog(output);
-    shmem->Lock();
-    shmem->content->data *= 2;
-    shmem->Unlock();
-    Sleep(2000);
-    shmem->Lock();
-    shmem->content->data = shmem->content->data / 2;
-    shmem->Unlock();
-
-#if defined(WIN32)
-    GetLocalTime(&st);
-    sprintf(output, "%02d:%02d:%02d.%03d %d\n", st.wHour, st.wMinute, st.wSecond, st.wMilliseconds, GetCurrentProcessId());
-#else
-    t = time(nullptr);
-    lt = localtime(&t);
-    sprintf(output, "%02d:%02d:%02d %d\n", lt->tm_hour, lt->tm_min, lt->tm_sec, getpid());
-#endif
-    WriteLog(output);
-    return 0;
-}
-
-char *current_executable_path;
-
-DWORD WINAPI CopyRunner(SharedMemory<int>* shmem) {
-#if defined(WIN32)
-    PROCESS_INFORMATION a, b;
-    char *ca = (char*)calloc(strlen(current_executable_path)+7, sizeof(char));
-    char *cb = (char*)calloc(strlen(current_executable_path)+7, sizeof(char));
-    memcpy(ca, current_executable_path, strlen(current_executable_path));
-    memcpy(cb, current_executable_path, strlen(current_executable_path));
-    memcpy(ca + strlen(current_executable_path), " copyA", 7);
-    memcpy(cb + strlen(current_executable_path), " copyB", 7);
     while (true) {
-        Sleep(3000);
-        DWORD exit_code_a = 0, exit_code_b = 0;
-        auto a_status = GetExitCodeProcess(a.hProcess, &exit_code_a);
-        auto b_status = GetExitCodeProcess(b.hProcess, &exit_code_b);
-        if (exit_code_a != STILL_ACTIVE && exit_code_b != STILL_ACTIVE) {
-            CloseHandle(a.hProcess);
-            CloseHandle(a.hThread);
-            STARTUPINFO si;
-            ZeroMemory( &si, sizeof(si) );
-            si.cb = sizeof(si);
-            CreateProcess(nullptr, ca, nullptr, nullptr, false, 0, nullptr, nullptr, &si, &a);
+        if (remainder != 0 && read_count != 0) {
+            memmove(buffer, buffer + full_length - remainder, remainder);
+            memset(buffer+remainder, 0, sizeof(char)*(1024-remainder));
+        }
+        read_count = sp->read(buffer+remainder, 1024-remainder);
+        full_length = read_count + remainder;
+        if (read_count != 0) {
+            memset(buffer+remainder+read_count, 0, sizeof(1024-remainder-read_count));
+            char* current_line = buffer;
+            char* current_line_end = strstr(current_line, "\n");
+            while (current_line_end != nullptr) {
+                int temp = 0;
+                int timestamp = 0;
 
-            CloseHandle(b.hProcess);
-            CloseHandle(b.hThread);
-            ZeroMemory( &si, sizeof(si) );
-            si.cb = sizeof(si);
-            CreateProcess(nullptr, cb, nullptr, nullptr, false, 0, nullptr, nullptr, &si, &b);
-        } else {
-            WriteLog("Copies still working. Wait...\n");
+                sscanf(current_line, "%d %d\n", &temp, &timestamp);
+
+                cout << temp << " " << timestamp << endl; //TODO: Обработать вывод измерений
+
+                if (distance(buffer, current_line_end+1) < read_count+remainder) {
+                    current_line = current_line_end + 1;
+                    current_line_end = strstr(current_line, "\n");
+                } else {
+                    current_line = buffer + read_count;
+                    break;
+                }
+            }
+            remainder = distance(current_line, buffer+full_length);
         }
     }
-#else
-    int a = 0, b = 0;
-    while (true)
-    {
-        Sleep(3000);
-        int status;
-        if (a==0 && b==0 || waitpid(a, &status, WNOHANG) && waitpid(b, &status, WNOHANG)) {
-            a = fork();
-            if (a == 0) {
-                copyA();
-                return nullptr;
-            }
-            b = fork();
-            if (b == 0) {
-                copyB();
-                return nullptr;
-            }
-        } else {
-            WriteLog("Copies still working. Wait...\n");
-        }
-    }
-
-
-#endif
-}
-
-DWORD WINAPI Logger(SharedMemory<int>* shmem, HANDLE fd) {
-    while(true) {
-        Sleep(1000);
-        shmem -> Lock();
-#if defined(WIN32)
-        SYSTEMTIME st;
-        GetLocalTime(&st);
-
-        char output[255];
-        sprintf(output, "%02d:%02d:%02d.%03d %d %d\n", st.wHour, st.wMinute, st.wSecond, st.wMilliseconds, GetCurrentProcessId(),shmem->content->data);
-#else
-        auto t = time(nullptr);
-        auto lt = localtime(&t);
-        char output[255];
-        sprintf(output, "%02d:%02d:%02d %d %d\n", lt->tm_hour, lt->tm_min, lt->tm_sec, getpid(),shmem->content->data);
-#endif
-        WriteLog(output);
-        shmem->Unlock();
-    }
-}
-
-HANDLE OpenFile(const char* filename, bool new_file) {
-#if defined(WIN32)
-
-    HANDLE h;
-    if (new_file) {
-        h = CreateFile(filename, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, TRUNCATE_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, NULL);
-        if (h == INVALID_HANDLE_VALUE)
-            h = CreateFile(filename, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, NULL);
-    } else {
-        h = CreateFile(filename, GENERIC_WRITE | FILE_APPEND_DATA, FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, NULL);
-    }
-    return h;
-
-#else
-    if (new_file)
-        return open(filename, O_WRONLY | O_CREAT | O_TRUNC);
-    else
-        return open(filename, O_APPEND);
-#endif
-}
-
-void _CloseFile(HANDLE fd) {
-#if defined(WIN32)
-    CloseHandle(fd);
-#else
-    close(fd);
-#endif
 }
 
 int main(int argc, char *argv[]) {
-    if (argc > 1) {
-        fd = OpenFile("logs.log", false);
-        if (strcmp(argv[1], "copyA") == 0) {
-            copyA();
-            return 0;
-        } else if (strcmp(argv[1], "copyB") == 0) {
-            copyB();
-            return 0;
-        }
-
-        _CloseFile(fd);
-
+    if (argc != 3) {
+        cout << "Usage: ./ShikataGaNai <serial port> <baud rate>" << endl;
         return 0;
-    } else {
-        fd = OpenFile("logs.log", true);
     }
-    current_executable_path = argv[0];
+
     auto shmem = new SharedMemory<int>("test_name");
     shmem->Lock();
     shmem->content->data=1;
     shmem->Unlock();
 
-    THREAD_HANDLE incrementer_h;
-    #if defined(WIN32)
-        DWORD thread_id;
-        incrementer_h = CreateThread(
-                nullptr,
-                0,
-                reinterpret_cast<LPTHREAD_START_ROUTINE>(Incrementor),
-                shmem,
-                0,
-                &thread_id
-                );
-    #else
-        pthread_attr_t attrs;
-        pthread_attr_init(&attrs);
-        pthread_create(
-                &incrementer_h,
-                &attrs,
-                reinterpret_cast<void *(*)(void *)>(Incrementor),
-                shmem
-                );
-    #endif
-
-    THREAD_HANDLE copy_runner_h;
-    #if defined(WIN32)
-        copy_runner_h = CreateThread(
-                nullptr,
-                0,
-                reinterpret_cast<LPTHREAD_START_ROUTINE>(CopyRunner),
-                shmem,
-                0,
-                &thread_id
-                );
-    #else
-        pthread_attr_t copy_runner_attr;
-        pthread_attr_init(&copy_runner_attr);
-        pthread_create(
-                &copy_runner_h,
-                &copy_runner_attr,
-                reinterpret_cast<void *(*)(void *)>(CopyRunner),
-                shmem
-                );
-    WriteLog("Run runner\n");
-    #endif
-
-    THREAD_HANDLE logger_h;
-#if defined(WIN32)
-    logger_h = CreateThread(
-                nullptr,
-                0,
-                reinterpret_cast<LPTHREAD_START_ROUTINE>(Logger),
-                shmem,
-                0,
-                &thread_id
-                );
-#else
-    pthread_attr_t logger_attr;
-    pthread_attr_init(&logger_attr);
-    pthread_create(
-            &logger_h,
-            &logger_attr,
-            reinterpret_cast<void *(*)(void *)>(Logger),
-            shmem
+    auto serialPortParams = SerialPort::Parameters(
+            argv[1],
+            argv[2],
+            Parity::ParityNone,
+            StopBits::StopBitsOne
     );
-#endif
 
-    while (true) {
-        int tmp;
-        cin >> tmp;
-        shmem->Lock();
-        shmem->content->data = tmp;
-        shmem->Unlock();
-    }
+    auto sp = SerialPort(serialPortParams);
+
+    sp.connect();
+
+    MeasurementsReader(&sp);
+
+    char* buffer = static_cast<char *>(::calloc(sizeof(char), 1024));
+
+    sp.read(buffer, 1024);
+
+    cout << buffer;
     
     return 0;
 }
