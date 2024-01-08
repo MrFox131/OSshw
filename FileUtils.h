@@ -9,6 +9,6 @@
 
 HANDLE OpenFile(const char* filename, bool new_file);
 void _CloseFile(HANDLE fd);
-void WriteLog(const char* data, HANDLE fd);
+void WriteLog(const char* data, HANDLE fd, bool override = false);
 
 #endif //DEFAULT_TEST_PROJECT_BY_MRFOX131_FILEUTILS_H

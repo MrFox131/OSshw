@@ -8,6 +8,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <cstring>
+#include <cstdio>
+#include <cerrno>
 
 HANDLE OpenFile(const char* filename, bool new_file) {
 #if defined(WIN32)
@@ -23,10 +25,14 @@ HANDLE OpenFile(const char* filename, bool new_file) {
     return h;
 
 #else
-    if (new_file)
-        return open(filename, O_WRONLY | O_CREAT | O_TRUNC);
-    else
-        return open(filename, O_APPEND);
+    if (new_file) {
+        HANDLE fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+        if (fd == -1) {
+            printf("%d\n", errno);
+        }
+        return fd;
+    } else
+        return open(filename, O_APPEND, 0666);
 #endif
 }
 
@@ -40,9 +46,13 @@ void _CloseFile(HANDLE fd) {
 
 
 
-void WriteLog(const char* data, HANDLE fd) {
+void WriteLog(const char* data, HANDLE fd, bool override) {
 #if defined(WIN32)
     DWORD written;
+
+    if (override) {
+        SetFilePointer(fd, 0, NULL, FILE_BEGIN);
+    }
 
     OVERLAPPED ol = {0};
     ol.Offset = 0xFFFFFFFF;
@@ -51,6 +61,9 @@ void WriteLog(const char* data, HANDLE fd) {
     WriteFile(fd, data, strlen(data), &written, &ol);
     CloseHandle(ol.hEvent);
 #else
+    if (override) {
+        lseek(fd, 0, SEEK_SET);
+    }
     write(fd, data, strlen(data));
 #endif
 }

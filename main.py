@@ -1,6 +1,8 @@
 #!/usr/sbin/python3
 import serial
 from time import time, sleep
+import datetime
+from dateutil import tz
 from random import randint
 from sys import argv
 
@@ -15,6 +17,16 @@ baud = int(argv[2])
 
 ser = serial.Serial(serial_path, baud)
 
-while True:
-    ser.write(f"{randint(20,30)} {int(time())}\n".encode('utf-8'))
-    sleep(1)
+print(datetime.datetime(2023, 12, 5, 10, 0, 0, 0, tz.gettz('UTC')).timestamp())
+
+temperature_pairs = []
+
+for i in range(5, 20, 1):
+    for j in range(0, 23):
+        temperature_pairs += [(int(datetime.datetime(2023, 12, i, j, k, 0, 0, tz.gettz('UTC')).timestamp()), randint(20,30)) for k in range(0, 59)]
+
+print(temperature_pairs)
+
+for pair in temperature_pairs:
+    ser.write(f"{pair[1]} {pair[0]}\n".encode('utf-8'))
+    print("written")
